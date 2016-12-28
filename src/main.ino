@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include "pins.h"
 
 Servo myservo;
 
@@ -28,5 +29,6 @@ void setup() {
 }
 
 void loop() {
-    distance()
+    distance();
+    delay(100);
 }
