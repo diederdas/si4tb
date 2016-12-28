@@ -6,6 +6,8 @@
 
 float d1 = 0, d2 = 0, speed = 0;
 
+unsigned long t1, t2;
+
 Servo myservo;
 
 float distance() {
@@ -45,28 +47,17 @@ float measureDriveDistance() {
     return d1;
 }
 
-float diff;
-
 float testSpeed() {
     d1 = distance();
-    moveForward(200);
+    t1 = millis();
+    moveForward(1000);
     d2 = distance();
+    t2 = millis();
     stop();
-    diff = (float)d1 - (float)d2;
-    Serial.print("diff = ");
-    Serial.println(diff);
-    return diff / 100.0; // cm per millisecond
-}
-
-void initialize() {
-    if (speed <= 0 || isnan(speed)) {
-        speed = testSpeed();
-
-        Serial.print("speed = ");
-        Serial.println(speed);
-    }
+    return (d1 - d2) / (t2 - t1); // cm per millisecond
 }
 
 void loop() {
+
     initialize();
 }
