@@ -4,7 +4,7 @@
 
 #define MIN_DISTANCE 30
 
-float d1 = 0, d2 = 0, speed = 0;
+float fwd = 0, left = 0, left45 = 0, right45 = 0, right = 0, speed = 0;
 
 unsigned long t1, t2;
 
@@ -18,7 +18,6 @@ float distance() {
     digitalWrite(TRIG, LOW);
 
     float fdistance = pulseIn(ECHO, HIGH) / 58.0;
-    Serial.println(fdistance);
     return fdistance;
 }
 
@@ -36,28 +35,75 @@ void setup() {
 }
 
 float measureDriveDistance() {
-    d1 = distance();
+    fwd = distance();
 
-    d1 /= 2.0;
-
-    if (d1 < MIN_DISTANCE) {
+    if (fwd < MIN_DISTANCE) {
         return 0;
     }
 
-    return d1;
+    return fwd / 2.0;
 }
 
-float testSpeed() {
-    d1 = distance();
-    t1 = millis();
-    moveForward(1000);
-    d2 = distance();
-    t2 = millis();
-    stop();
-    return (d1 - d2) / (t2 - t1); // cm per millisecond
+float measureRotate(int degree) {
+    myservo.write(degree);
+    delay(1000);
+    return distance();
 }
+
+float rotateCorrect() {
+    right = measureRotate(0);
+    right45 = measureRotate(45);
+    fwd = measureRotate(90);
+    left45 = measureRotate(135);
+    left = measureRotate(180);
+    myservo.write(90);
+    delay(1000);
+
+    Serial.print("fwd = ");
+    Serial.println(fwd);
+    Serial.print("left =  ");
+    Serial.println(left);
+    Serial.print("right = ");
+    Serial.println(right);
+
+    if (fwd > MIN_DISTANCE && left45 > MIN_DISTANCE && right45 > MIN_DISTANCE) {
+        Serial.print("forward ");
+    } else if (left > right && left > MIN_DISTANCE && left45 > MIN_DISTANCE) {
+        Serial.print("left ");
+        rotate(-90);
+        return 0;
+    } else if (right > MIN_DISTANCE && right45 > MIN_DISTANCE) {
+        Serial.print("right ");
+        rotate(90);   
+        return 0; 
+    } else {
+        Serial.print("back ");
+        rotate(180);  
+        return 0;
+    }
+    fwd = measureDriveDistance();
+    Serial.println(fwd);
+    return fwd;
+}
+
+float cm;
+
+unsigned long now, limit;
 
 void loop() {
-
-    initialize();
+    cm = rotateCorrect();
+    if (cm > 0) {
+        moveForwardInf();
+        now = millis();
+        limit = now + cm * 10 - 20; // minus error between readings
+        Serial.print("waiting = ");
+        Serial.println(limit - now);
+        while ((now = millis()) < limit) {
+            fwd = distance();
+            if (fwd <= MIN_DISTANCE) {
+                break;
+            }
+        }
+        stop();
+    }
 }
