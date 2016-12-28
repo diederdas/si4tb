@@ -5,9 +5,9 @@ Servo myservo;
 
 float distance() {
     digitalWrite(TRIG, LOW);
-    delayMicroseconds(2);
+    delayMicroseconds(10);
     digitalWrite(TRIG, HIGH);
-    delayMicroseconds(20);
+    delay(60);
     digitalWrite(TRIG, LOW);
 
     float fdistance = pulseIn(ECHO, HIGH);
@@ -30,5 +30,5 @@ void setup() {
 
 void loop() {
     distance();
-    delay(100);
+    //delay(100);
 }
